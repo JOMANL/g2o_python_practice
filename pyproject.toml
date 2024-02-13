@@ -1,0 +1,25 @@
+[tool.poetry]
+name = "poetry"
+version = "0.1.0"
+description = ""
+authors = [""]
+
+[tool.poetry.dependencies]
+python = "^3.8"
+numpy = "^1.21.1"
+opencv-python="^4.7.0.72"
+opencv-contrib-python="^4.7.0.72"
+matplotlib = "^3.7.1"
+g2o-python = "^0.0.11"
+jupyter = "^1.0.0"
+
+[tool.poetry.dev-dependencies]
+jupyter = "^1.0.0"
+jupyterlab = "^3.6.3"
+jupyter-contrib-nbextensions = "^0.7.0"
+ipympl = "^0.9.3"
+pybind11 = "^2.10.4"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
