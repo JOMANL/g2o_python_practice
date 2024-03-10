@@ -116,8 +116,8 @@ def main(args):
         pickle.dump(chi2_errors, f)
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description='A simple program to greet someone.')
-    parser.add_argument('--solver', type=int, default=0, help='solver-0: ')
+    parser = argparse.ArgumentParser(description='sample code to compareing convergence performance of solver algoritims')
+    parser.add_argument('--solver', type=int, default=0, help='solver-0: LinearSolverDenseX, 1: LinearSolverEigenX, 2: LinearSolverPCGX')
     parser.add_argument('--seed', type=int, default=0, help='random seed for generate ellipse sample')
     parser.add_argument('--iter', type=int, default=100, help='Max iteration')
     parser.add_argument('--out', type=str, default=0, required=True,help='save file name of pkl')
