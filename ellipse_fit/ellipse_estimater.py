@@ -3,7 +3,7 @@
 import numpy as np
 from .utils import *
 
-def est_eclipse_from_points(points):
+def est_ellipse_from_points(points):
     """ estimate shape parameter and angle of each sample by SVD
 
     Args:
