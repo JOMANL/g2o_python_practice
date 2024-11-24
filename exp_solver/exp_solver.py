@@ -25,11 +25,9 @@ solver_kinds = {
     "PCGX": g2o.LinearSolverPCGX()
 }
 
-def generate_points_on_ellipse(seed = 0):
+def generate_points_on_ellipse(seed = 0, num_points = 100):
 
     random.seed(seed)
-
-    num_points: int = 100
 
     center: np.ndarray = np.array([4, 8])
     A: float = 12
@@ -50,7 +48,7 @@ def generate_points_on_ellipse(seed = 0):
 
 
 def main(args):
-    points = generate_points_on_ellipse(args.seed)
+    points = generate_points_on_ellipse(args.seed, args.num_points)
 
     max_iterations: int = args.iter
     verbose: bool = True
@@ -123,6 +121,7 @@ def main(args):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='A simple program to greet someone.')
+    parser.add_argument('--num-points', type=int, default=0, help='number of sample points on ellipse')
     parser.add_argument('--seed', type=int, default=0, help='random seed for generate ellipse sample')
     parser.add_argument('--iter', type=int, default=100, help='Max iteration')
     parser.add_argument('--out', type=str, default=0, required=True,help='save file name of csv')
