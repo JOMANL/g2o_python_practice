@@ -12,6 +12,7 @@ opencv-contrib-python="^4.7.0.72"
 matplotlib = "^3.7.1"
 g2o-python = "^0.0.11"
 jupyter = "^1.0.0"
+pandas = "2.0.0"
 
 [tool.poetry.dev-dependencies]
 jupyter = "^1.0.0"

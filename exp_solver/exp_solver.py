@@ -3,6 +3,9 @@ sys.path.append("../")
 
 from matplotlib.colors import LinearSegmentedColormap
 
+import pickle
+import argparse
+
 from typing import List
 import random
 
@@ -12,8 +15,15 @@ from ellipse_fit.utils import *
 
 import g2o
 
-import pickle
-import argparse
+import time
+import pandas as pd
+
+# experiment configulation
+solver_kinds = {
+    "DenceX": g2o.LinearSolverDenseX(),
+    "EigenX": g2o.LinearSolverEigenX(),
+    "PCGX": g2o.LinearSolverPCGX()
+}
 
 def generate_points_on_ellipse(seed = 0):
 
@@ -46,31 +56,15 @@ def main(args):
     verbose: bool = True
     # TODO: Parse from command line
 
-    # Setup the optimizer
-    optimizer = g2o.SparseOptimizer()
-
-    #solver = g2o.BlockSolverX(g2o.LinearSolverEigenX())
-    if args.solver == 0:
-        solver = g2o.BlockSolverX(g2o.LinearSolverDenseX())
-    elif args.solver == 1:
-        solver = g2o.BlockSolverX(g2o.LinearSolverEigenX())
-    elif args.solver == 2:
-        solver = g2o.BlockSolverX(g2o.LinearSolverPCGX())
-    else:
-        raise ValueError("Please set solver argument 0,1 or 2.")
-
-    solver = g2o.OptimizationAlgorithmLevenberg(solver)
-    optimizer.set_algorithm(solver)
-
     points = np.array(points)
-
     init_angles,init_cx,init_cy,init_A,init_B,init_phi = est_ellipse_from_points(points)
-
     ellipse: VertexEllipse = VertexEllipse()
     ellipse.set_id(0)
     ellipse.set_estimate([init_cx,init_cy,init_A,init_B,init_phi])  # some initial value for the circle
-    optimizer.add_vertex(ellipse)
 
+    # Setup the optimizer
+    optimizer = g2o.SparseOptimizer()
+    optimizer.add_vertex(ellipse)
     # 2. add the points we measured
 
     est_rot = get_rot_mat_from_angle(init_phi)
@@ -95,32 +89,43 @@ def main(args):
     print(f"Number of vertices: {len(optimizer.vertices())}")
     print(f"Number of edges: {len(optimizer.edges())}")
 
-    # perform the optimization
-    optimizer.initialize_optimization()
-    optimizer.set_verbose(False)
+    datas = []
+    for solver_name in solver_kinds.keys():
+        solver = g2o.OptimizationAlgorithmLevenberg(g2o.BlockSolverX(solver_kinds[solver_name]))
+        optimizer.set_algorithm(solver)
 
-    chi2_errors = []
+        # perform the optimization
+        optimizer.initialize_optimization()
+        optimizer.set_verbose(False)
 
-    for i in range(max_iterations):
-        print(f"Iteration {i}:")
-        
-        # Optimize one iteration
-        optimizer.optimize(1)
-        
-        # Compute and print total chi^2 error
-        total_chi2 = optimizer.active_chi2()
-        print(f"Total chi^2 error: {total_chi2}")
-        chi2_errors.append(total_chi2)
+        for i in range(max_iterations):
+            print(f"Iteration {i}:")
+            
+            # Optimize one iteration
+            start_time = time.perf_counter() # seconds
+            optimizer.optimize(1)
+            end_time = time.perf_counter() # seconds
 
-    with open(args.out, "wb") as f:
-        pickle.dump(chi2_errors, f)
+            elapsed_time = end_time - start_time # seconds
+            
+            # Compute and print total chi^2 error
+            total_chi2 = optimizer.active_chi2()
+            print(f"Total chi^2 error: {total_chi2}")
+            datas.append({
+                "solver": solver_name,
+                "iteration": i,
+                "chi_error": total_chi2,
+                "elapsed_time":  elapsed_time
+            })
+
+    df = pd.DataFrame(datas)
+    df.to_csv(args.out)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='A simple program to greet someone.')
-    parser.add_argument('--solver', type=int, default=0, help='solver-0: ')
     parser.add_argument('--seed', type=int, default=0, help='random seed for generate ellipse sample')
     parser.add_argument('--iter', type=int, default=100, help='Max iteration')
-    parser.add_argument('--out', type=str, default=0, required=True,help='save file name of pkl')
+    parser.add_argument('--out', type=str, default=0, required=True,help='save file name of csv')
 
     args = parser.parse_args()
     main(args)
